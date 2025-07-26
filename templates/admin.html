@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <style>
+        body { font-family: sans-serif; background: #f9f9f9; padding: 30px; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; background: #fff; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #eee; }
+        form { display: inline; }
+        .topbar { margin-bottom: 20px; }
+        .btn { padding: 6px 12px; background: #007BFF; color: white; text-decoration: none; border-radius: 4px; }
+        .btn:hover { background: #0056b3; }
+        .delete { background: #e74c3c; }
+        .delete:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+    <h1>🎓 Admin Panel</h1>
+
+    <div class="topbar">
+        <a href="/export" class="btn">📦 Export Messages JSON</a>
+        <a href="/export_images" class="btn">🖼 Export Uploaded Photos</a>
+        <a href="/logout" class="btn" style="float:right;">🔒 Logout</a>
+    </div>
+
+    <table>
+        <tr><th>Name</th><th>Message</th><th>Photo</th><th>Action</th></tr>
+        {% for idx, msg in messages.items() %}
+        <tr>
+            <td>{{ msg.get('name') }}</td>
+            <td>{{ msg.get('message') }}</td>
+            <td>
+                {% if msg.get('photo') %}
+                <a href="{{ url_for('static', filename='uploads/' + msg.get('photo')) }}" target="_blank">📷</a>
+                {% else %}
+                -
+                {% endif %}
+            </td>
+            <td>
+                <form method="POST" action="/delete/{{ idx }}" onsubmit="return confirm('Delete this message?');">
+                    <button class="btn delete">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

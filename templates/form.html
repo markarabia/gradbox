@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leave a Grad Message</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 40px; text-align: center; }
+    h1 { color: #333; }
+    form { background: #fff; padding: 20px; display: inline-block; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #45a049; }
+  </style>
+</head>
+<body>
+  <h1>🎓 Leave a message for the grad!</h1>
+  <form action="/submit" method="POST" enctype="multipart/form-data">
+    <input name="name" placeholder="Your name" required><br>
+    <textarea name="message" placeholder="Write your message..." rows="4" required></textarea><br>
+    <input type="file" name="photo" accept="image/*" capture="environment"><br>
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>
