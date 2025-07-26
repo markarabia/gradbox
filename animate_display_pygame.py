@@ -35,7 +35,7 @@ def display_image(img: Image.Image):
     screen.blit(surface, (0, 0))
     pygame.display.flip()
 
-def draw_message(msg, theme=active_theme):
+def draw_message(msg, theme=theme):
     bg_color = random.choice(theme["backgrounds"])
     overlay_icons = theme.get("overlay_icons", [])
 
