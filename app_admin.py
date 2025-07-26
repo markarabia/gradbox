@@ -86,6 +86,14 @@ def delete_message(msg_id):
     save_messages(messages)
     return redirect("/admin")
 
+@app.route("/stop_display", methods=["POST"])
+def stop_display():
+    if not session.get("admin"):
+        return redirect("/login")
+
+    os.system("pkill -f animate_display_pygame.py")
+    return redirect("/admin")
+
 
 @app.route("/export")
 def export_messages():
