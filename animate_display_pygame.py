@@ -35,62 +35,73 @@ def display_image(img: Image.Image):
     screen.blit(surface, (0, 0))
     pygame.display.flip()
 
-def draw_message(msg):
-    bg = random.choice(theme["backgrounds"])
-    img = Image.new("RGB", (DISPLAY_WIDTH, DISPLAY_HEIGHT), color=bg)
-    draw = ImageDraw.Draw(img)
+def draw_message(msg, theme=active_theme):
+    bg_color = random.choice(theme["backgrounds"])
+    overlay_icons = theme.get("overlay_icons", [])
 
-    # Icons
-    for icon_name in theme["overlay_icons"]:
+    img = Image.new("RGB", (DISPLAY_WIDTH, DISPLAY_HEIGHT), color=bg_color)
+    draw = ImageDraw.Draw(img)
+    
+    # Overlay icons
+    for icon_name in overlay_icons:
         icon_path = os.path.join(ICON_FOLDER, icon_name)
         if os.path.exists(icon_path):
             try:
                 icon = Image.open(icon_path).convert("RGBA")
                 icon.thumbnail((32, 32))
-                x = random.randint(10, DISPLAY_WIDTH - 42)
-                y = random.randint(10, DISPLAY_HEIGHT - 42)
+                for _ in range(3):
+                    x = random.randint(10, DISPLAY_WIDTH - 42)
+                    y = random.randint(10, DISPLAY_HEIGHT - 42)
+                    if not (180 < x < 300 and y < 110):
+                        break
                 img.paste(icon, (x, y), icon)
-            except: continue
+            except Exception as e:
+                print("Icon error:", e)
 
-    # Polaroid photo
+    # Draw polaroid photo
     if msg.get("photo"):
-        path = os.path.join(PHOTO_FOLDER, msg["photo"])
-        if os.path.exists(path):
+        photo_path = os.path.join(PHOTO_FOLDER, msg["photo"])
+        if os.path.exists(photo_path):
             try:
-                photo = Image.open(path)
-                photo = ImageOps.exif_transpose(photo)
+                photo = Image.open(photo_path).convert("RGB")
                 photo.thumbnail((280, 200))
-                polaroid = Image.new("RGB", (photo.width+20, photo.height+50), "white")
+                polaroid_height = photo.height + 50
+                polaroid = Image.new("RGB", (photo.width + 20, polaroid_height), "white")
                 polaroid.paste(photo, (10, 10))
-                shadow = Image.new("RGB", (polaroid.width+6, polaroid.height+6), (220,220,220))
-                img.paste(shadow, ((DISPLAY_WIDTH-polaroid.width)//2+4, 22))
-                img.paste(polaroid, ((DISPLAY_WIDTH-polaroid.width)//2, 20))
-            except: pass
 
-    # Message bubble
-    text = msg.get("message", "")
-    lines = text.split("\n")
-    wrapped = []
-    for l in lines:
-        wrapped += l.split() if len(l) < 40 else [l[i:i+28] for i in range(0, len(l), 28)]
+                shadow = Image.new("RGB", (polaroid.width + 6, polaroid.height + 6), (220, 220, 220))
+                shadow_offset = ((DISPLAY_WIDTH - polaroid.width) // 2 + 4, 22)
+                img.paste(shadow, shadow_offset)
+                img.paste(polaroid, ((DISPLAY_WIDTH - polaroid.width) // 2, 20))
+            except Exception as e:
+                print("Photo error:", e)
 
-    bubble_h = 16 + len(wrapped) * 26
-    bubble_w = DISPLAY_WIDTH - 80
-    bubble = Image.new("RGBA", (bubble_w, bubble_h), theme["bubble"])
-    draw_bubble = ImageDraw.Draw(bubble)
-    for i, line in enumerate(wrapped):
-        draw_bubble.text((20, 6 + i * 26), line, font=font_small, fill=theme["text"])
-    bubble_x = 40
-    bubble_y = DISPLAY_HEIGHT - bubble_h - 30
-    img.paste(bubble, (bubble_x, bubble_y), bubble)
+    # Message setup
+    message_text = msg.get("message", "")
+    message_lines = textwrap.wrap(message_text, width=28)
+    bubble_height = 16 + len(message_lines) * 28
+    bubble_width = DISPLAY_WIDTH - 80
+    bubble_x0 = 40
+    bubble_y0 = DISPLAY_HEIGHT - bubble_height - 30
+    
 
-    # Name label
-    name = f"{msg.get('name', 'Someone')} says:"
-    draw.text((bubble_x, bubble_y - 34), name, fill=theme["text"], font=font_sub)
+    # Draw message bubble first (behind)
+    bubble_rect = Image.new("RGBA", (bubble_width, bubble_height), theme["bubble"])
+    draw_bubble = ImageDraw.Draw(bubble_rect)
+    for i, line in enumerate(message_lines):
+        draw_bubble.text((20, 8 + i * 28), line, font=font_small, fill=theme["text"])
+    img.paste(bubble_rect, (bubble_x0, bubble_y0), bubble_rect)
+
+    # Draw name AFTER so it's layered on top
+    name_text = f"{msg.get('name', 'Someone')} says:"
+    name_x = bubble_x0
+    name_y = bubble_y0 - 34
+    draw.text((name_x, name_y), name_text, fill=theme["text"], font=font_medium)
+
 
 
     return img
-
+    
 def draw_splash_screen(photo_path, title_text, subtitle_text, theme):
     from PIL import Image, ImageDraw, ImageFont
 
